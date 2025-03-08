@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Minecraft Word Spelling Game</title>
+    <style>
+        @font-face {
+            font-family: 'MinecraftFont';
+            src: url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #506B50;
+            color: white;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            background-image: repeating-linear-gradient(rgba(0, 0, 0, 0.1) 0px, rgba(0, 0, 0, 0.1) 2px, transparent 2px, transparent 4px);
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .app-title {
+            text-align: center;
+            font-size: 3rem;
+            margin: 20px 0;
+            color: #FFF;
+            text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
+            font-family: 'MinecraftFont', 'Arial', sans-serif;
+            letter-spacing: 2px;
+            background-color: #8B6914;
+            padding: 10px;
+            border: 4px solid #000;
+            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.3);
+        }
+
+        .game-card {
+            position: relative;
+            height: 500px;
+            margin: 20px auto;
+            perspective: 1000px;
+        }
+
+        .card-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-inner.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border: 8px solid #000;
+            box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.2);
+        }
+
+        .card-front {
+            background-color: #5D87C1;
+            background-image: linear-gradient(45deg, #5D87C1 25%, #4878B5 25%, #4878B5 50%, #5D87C1 50%, #5D87C1 75%, #4878B5 75%, #4878B5 100%);
+            background-size: 40px 40px;
+        }
+
+        .card-back {
+            background-color: #94A15D;
+            background-image: repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.1) 0px, rgba(0, 0, 0, 0.1) 10px, transparent 10px, transparent 20px);
+            transform: rotateY(180deg);
+        }
+
+        .syllables {
+            font-size: 28px;
+            margin: 0 0 15px 0;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        .pronunciation {
+            font-size: 20px;
+            margin: 0;
+            font-style: italic;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .example-sentence {
+            margin: 20px 0 0 0;
+            padding: 15px;
+            background-color: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            border: 3px solid #000;
+            width: 70%;
+            max-width: 500px;
+        }
+
+        .example-sentence h3 {
+            margin-top: 0;
+            font-size: 22px;
+            text-shadow: 1px 1px 0 #000;
+            margin-bottom: 10px;
+        }
+
+        .example-sentence p {
+            font-size: 20px;
+            margin: 0;
+            line-height: 1.3;
+        }
+
+        /* Adjust letter boxes for compound words */
+        .word-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+            gap: 5px;
+            padding: 0 10px;
+        }
+
+        .letter-box {
+            width: 50px;
+            height: 60px;
+            margin: 0 5px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 3px solid #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 36px;
+            font-family: 'MinecraftFont', 'Arial', sans-serif;
+            text-shadow: 2px 2px 0 #000;
+            color: white;
+            position: relative;
+        }
+
+        .letter-input {
+            width: 40px;
+            height: 50px;
+            font-size: 32px;
+            text-align: center;
+            background-color: #F5F5F5;
+            border: 3px solid #000;
+            text-transform: uppercase;
+            font-family: 'MinecraftFont', 'Arial', sans-serif;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            font-size: 18px;
+            background-color: #7E3494;
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.2), 0 4px 0 0 #5C1C6E;
+            border: 3px solid #000;
+            text-transform: uppercase;
+            font-weight: bold;
+            transition: all 0.1s;
+        }
+
+        .btn:hover {
+            background-color: #9540B0;
+        }
+
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.2), 0 0 0 0 #5C1C6E;
+        }
+
+        .check-btn {
+            background-color: #2E8B57;
+            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.2), 0 4px 0 0 #006400;
+            margin-top: 20px;
+            padding: 12px 40px;
+            font-size: 22px;
+        }
+
+        .check-btn:hover {
+            background-color: #3CB371;
+        }
+
+        .check-btn:active {
+            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.2), 0 0 0 0 #006400;
+        }
+
+        .flip-btn {
+            background-color: #CD853F;
+            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.2), 0 4px 0 0 #8B4513;
+            margin-top: 10px;
+        }
+
+        .flip-btn:hover {
+            background-color: #DEB887;
+        }
+
+        .flip-btn:active {
+            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.2), 0 0 0 0 #8B4513;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background-color: #555;
+            border: 3px solid #000;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: #32CD32;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            line-height: 20px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 1px black;
+        }
+
+        .score-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 15px 0;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 8px 15px;
+            border-radius: 15px;
+            border: 2px solid #000;
+        }
+
+        .score-label {
+            margin-right: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .score {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 1px 1px 1px black;
+        }
+
+        .feedback {
+            height: 30px;
+            margin: 20px 0;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 1px 1px 0 #000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feedback.show {
+            opacity: 1;
+        }
+
+        .feedback.correct {
+            color: #32CD32;
+        }
+
+        .feedback.incorrect {
+            color: #FF4500;
+        }
+
+        .instructions {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .correct-input {
+            background-color: #ADFF2F;
+            border-color: #32CD32;
+        }
+
+        .incorrect-input {
+            background-color: #FFA07A;
+            border-color: #FF4500;
+        }
+
+        .celebration {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .celebration.show {
+            opacity: 1;
+        }
+
+        .star {
+            position: absolute;
+            background-color: #FFD700;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            animation: star-fall 1s ease-out forwards;
+        }
+
+        @keyframes star-fall {
+            0% {
+                transform: translateY(-50px) scale(0);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(400px) scale(0.3);
+                opacity: 0;
+            }
+        }
+
+        /* Media queries for responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                padding: 0;
+            }
+            
+            .game-card {
+                height: 450px;
+            }
+            
+            .word {
+                font-size: 44px;
+            }
+            
+            .syllables {
+                font-size: 26px;
+            }
+            
+            .pronunciation {
+                font-size: 18px;
+            }
+            
+            .letter-box {
+                width: 35px;
+                height: 45px;
+                font-size: 28px;
+                margin: 0 3px;
+            }
+            
+            .letter-input {
+                width: 30px;
+                height: 38px;
+                font-size: 24px;
+            }
+            
+            .btn {
+                padding: 10px 15px;
+                font-size: 16px;
+            }
+            
+            .example-sentence {
+                width: 85%;
+                padding: 12px;
+            }
+            
+            .example-sentence h3 {
+                font-size: 20px;
+            }
+            
+            .example-sentence p {
+                font-size: 18px;
+            }
+            
+            .check-btn {
+                padding: 10px 30px;
+                font-size: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .app-title {
+                font-size: 2.2rem;
+                padding: 8px;
+            }
+            
+            .game-card {
+                height: 400px;
+                margin: 10px auto;
+            }
+            
+            .card-front, .card-back {
+                padding: 15px 10px;
+            }
+            
+            .word {
+                font-size: 36px;
+                margin-bottom: 10px;
+            }
+            
+            .syllables {
+                font-size: 22px;
+                margin-bottom: 10px;
+            }
+            
+            .pronunciation {
+                font-size: 16px;
+                margin-bottom: 15px;
+                padding: 4px 10px;
+            }
+            
+            .letter-box {
+                width: 28px;
+                height: 36px;
+                font-size: 22px;
+                margin: 0 2px;
+            }
+            
+            .letter-input {
+                width: 24px;
+                height: 30px;
+                font-size: 18px;
+            }
+            
+            .btn {
+                padding: 8px 12px;
+                font-size: 14px;
+                margin: 5px;
+            }
+            
+            .controls {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 5px;
+            }
+            
+            .example-sentence {
+                width: 90%;
+                padding: 10px;
+                margin: 10px 0;
+            }
+            
+            .example-sentence h3 {
+                font-size: 18px;
+                margin-bottom: 5px;
+            }
+            
+            .example-sentence p {
+                font-size: 16px;
+            }
+            
+            .feedback {
+                font-size: 20px;
+                height: 24px;
+                margin: 10px 0;
+            }
+            
+            .check-btn {
+                padding: 8px 20px;
+                font-size: 18px;
+                margin-top: 10px;
+            }
+            
+            .progress-bar {
+                height: 15px;
+                margin: 10px 0;
+            }
+            
+            .progress-text {
+                line-height: 15px;
+                font-size: 12px;
+            }
+            
+            .score-container {
+                margin: 10px 0;
+                padding: 5px 10px;
+            }
+            
+            .score-label {
+                font-size: 16px;
+            }
+            
+            .score {
+                font-size: 20px;
+            }
+            
+            .instructions {
+                padding: 10px;
+                margin: 10px 0;
+                font-size: 14px;
+            }
+        }
+        
+        /* Smallest mobile devices */
+        @media (max-width: 375px) {
+            .app-title {
+                font-size: 1.8rem;
+            }
+            
+            .game-card {
+                height: 360px;
+            }
+            
+            .word {
+                font-size: 32px;
+            }
+            
+            .syllables {
+                font-size: 20px;
+            }
+            
+            .pronunciation {
+                font-size: 14px;
+            }
+            
+            .letter-box {
+                width: 24px;
+                height: 32px;
+                font-size: 18px;
+                margin: 0 2px;
+            }
+            
+            .letter-input {
+                width: 20px;
+                height: 26px;
+                font-size: 16px;
+            }
+            
+            .btn {
+                padding: 6px 10px;
+                font-size: 13px;
+            }
+            
+            .example-sentence p {
+                font-size: 14px;
+            }
+            
+            /* Adjust long words for small screens */
+            .word-container {
+                flex-wrap: wrap;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="app-title">Minecraft Word Game</h1>
+        
+        <div class="instructions">
+            Fill in the missing letters to spell each word correctly. Click Check when you're ready!
+        </div>
+
+        <div class="score-container">
+            <span class="score-label">Score:</span>
+            <span class="score" id="score">0</span>
+        </div>
+        
+        <div class="game-card" id="game-card">
+            <div class="celebration" id="celebration"></div>
+            <div class="card-inner" id="card-inner">
+                <div class="card-front">
+                    <h2 class="word" id="word-display">WORD</h2>
+                    <div class="syllables" id="syllables">syl·la·bles</div>
+                    <div class="pronunciation" id="pronunciation">/pronunciation/</div>
+                    
+                    <div class="example-sentence">
+                        <h3>Example Sentence</h3>
+                        <p id="example-sentence">A sentence using this word.</p>
+                    </div>
+                </div>
+                <div class="card-back">
+                    <div class="game-title">Spell the Word</div>
+                    
+                    <div class="word-container" id="word-container">
+                        <!-- Will be filled with letter boxes -->
+                    </div>
+                    
+                    <div class="feedback" id="feedback">Correct!</div>
+                    
+                    <button class="btn check-btn" id="check-btn">Check</button>
+                    <button class="btn flip-btn" id="back-btn" style="margin-top: 20px;">← See Word</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+            <div class="progress-text" id="progress-text">1/13</div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn" id="prev-btn">Previous</button>
+            <button class="btn flip-btn" id="flip-btn">Play Game</button>
+            <button class="btn" id="next-btn">Next</button>
+        </div>
+    </div>
+
+    <script>
+        // Words data with simplified sentences
+        const wordsData = [
+            {
+                word: "COMIC",
+                syllables: "com·ic",
+                pronunciation: "/ˈkɒm.ɪk/",
+                sentence: "I like to read a funny comic."
+            },
+            {
+                word: "MONSTER",
+                syllables: "mon·ster",
+                pronunciation: "/ˈmɒn.stər/",
+                sentence: "The green monster goes boom!"
+            },
+            {
+                word: "DOLL",
+                syllables: "doll",
+                pronunciation: "/dɒl/",
+                sentence: "She plays with her doll."
+            },
+            {
+                word: "CAMERA",
+                syllables: "cam·er·a",
+                pronunciation: "/ˈkæm.ə.rə/",
+                sentence: "I take photos with my camera."
+            },
+            {
+                word: "TRAIN",
+                syllables: "train",
+                pronunciation: "/treɪn/",
+                sentence: "The train goes choo-choo!"
+            },
+            {
+                word: "BRAIN",
+                syllables: "brain",
+                pronunciation: "/breɪn/",
+                sentence: "Use your brain to solve puzzles."
+            },
+            {
+                word: "LORRY",
+                syllables: "lor·ry",
+                pronunciation: "/ˈlɒr.i/",
+                sentence: "The big lorry carries blocks."
+            },
+            {
+                word: "COMPUTER",
+                syllables: "com·put·er",
+                pronunciation: "/kəmˈpjuː.tər/",
+                sentence: "I play games on my computer."
+            },
+            {
+                word: "BOX",
+                syllables: "box",
+                pronunciation: "/bɒks/",
+                sentence: "I found gold in the box!"
+            },
+            {
+                word: "DRINK",
+                syllables: "drink",
+                pronunciation: "/drɪŋk/",
+                sentence: "I drink water when I'm thirsty."
+            },
+            {
+                word: "LOCK",
+                syllables: "lock",
+                pronunciation: "/lɒk/",
+                sentence: "The lock keeps my door safe."
+            },
+            {
+                word: "KEY",
+                syllables: "key",
+                pronunciation: "/kiː/",
+                sentence: "The key opens the door."
+            },
+            {
+                word: "BLONDE",
+                syllables: "blonde",
+                pronunciation: "/blɒnd/",
+                sentence: "She has blonde hair."
+            }
+        ];
+
+        // Game variables
+        let currentWordIndex = 0;
+        let score = 0;
+        let wordCompleted = [];
+        const totalWords = wordsData.length;
+
+        // DOM elements
+        const cardInner = document.getElementById('card-inner');
+        const wordDisplayElement = document.getElementById('word-display');
+        const syllablesElement = document.getElementById('syllables');
+        const pronunciationElement = document.getElementById('pronunciation');
+        const wordContainer = document.getElementById('word-container');
+        const exampleSentenceElement = document.getElementById('example-sentence');
+        const feedbackElement = document.getElementById('feedback');
+        const progressBar = document.getElementById('progress');
+        const progressText = document.getElementById('progress-text');
+        const scoreElement = document.getElementById('score');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const checkBtn = document.getElementById('check-btn');
+        const flipBtn = document.getElementById('flip-btn');
+        const backBtn = document.getElementById('back-btn');
+        const celebrationElement = document.getElementById('celebration');
+
+        // Initialize the game
+        function init() {
+            // Initialize wordCompleted array
+            wordCompleted = new Array(totalWords).fill(false);
+            
+            // Display first word
+            displayWord(currentWordIndex);
+            updateProgress();
+            updateScore();
+        }
+
+        // Display a word with information on front and game on back
+        function displayWord(index) {
+            const wordData = wordsData[index];
+            const word = wordData.word;
+            
+            // Update word info on front
+            wordDisplayElement.textContent = word;
+            syllablesElement.textContent = wordData.syllables;
+            pronunciationElement.textContent = wordData.pronunciation;
+            exampleSentenceElement.textContent = wordData.sentence;
+            
+            // Clear previous game on back
+            wordContainer.innerHTML = '';
+            
+            // Reset card to front side
+            cardInner.classList.remove('flipped');
+            
+            // Hide feedback
+            feedbackElement.classList.remove('show', 'correct', 'incorrect');
+            
+            // Setup game on back
+            if (wordCompleted[index]) {
+                // Show completed word with all letters
+                setupCompletedGame(word);
+            } else {
+                // Show game with missing letters
+                setupNewGame(word);
+            }
+        }
+        
+        // Setup game UI for a completed word
+        function setupCompletedGame(word) {
+            for (let i = 0; i < word.length; i++) {
+                const letter = word[i];
+                
+                const letterBox = document.createElement('div');
+                letterBox.className = 'letter-box';
+                letterBox.textContent = letter;
+                
+                if (letter === ' ') {
+                    letterBox.style.visibility = 'hidden';
+                }
+                
+                wordContainer.appendChild(letterBox);
+            }
+            
+            // Disable check button
+            checkBtn.disabled = true;
+            checkBtn.style.opacity = '0.5';
+            checkBtn.style.cursor = 'default';
+        }
+        
+        // Setup game UI for a new word
+        function setupNewGame(word) {
+            // Determine which letters to hide (approximately 30-40% of letters)
+            const letterCount = word.length;
+            const hiddenCount = Math.max(1, Math.floor(letterCount * 0.4));
+            
+            // Generate random positions to hide (avoid spaces)
+            const hiddenPositions = [];
+            
+            // To ensure randomness, we'll shuffle the indices of the word
+            // and then pick the first hiddenCount indices (that aren't spaces)
+            const allPositions = [];
+            for (let i = 0; i < word.length; i++) {
+                if (word[i] !== ' ') {
+                    allPositions.push(i);
+                }
+            }
+            
+            // Shuffle array using Fisher-Yates algorithm
+            for (let i = allPositions.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [allPositions[i], allPositions[j]] = [allPositions[j], allPositions[i]];
+            }
+            
+            // Take the first hiddenCount positions
+            for (let i = 0; i < Math.min(hiddenCount, allPositions.length); i++) {
+                hiddenPositions.push(allPositions[i]);
+            }
+            
+            // Create letter boxes with inputs for hidden letters
+            for (let i = 0; i < word.length; i++) {
+                const letter = word[i];
+                
+                const letterBox = document.createElement('div');
+                letterBox.className = 'letter-box';
+                
+                if (letter === ' ') {
+                    // Show a space
+                    letterBox.style.visibility = 'hidden';
+                } else if (hiddenPositions.includes(i)) {
+                    // Create input for hidden letter
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'letter-input';
+                    input.maxLength = 1;
+                    input.dataset.position = i;
+                    input.dataset.letter = letter;
+                    
+                    // Add event listeners for input validation and focus management
+                    input.addEventListener('input', function() {
+                        this.value = this.value.toUpperCase();
+                        
+                        // Move focus to next input if available
+                        if (this.value) {
+                            const inputs = document.querySelectorAll('.letter-input');
+                            const currentIndex = Array.from(inputs).indexOf(this);
+                            if (currentIndex < inputs.length - 1) {
+                                inputs[currentIndex + 1].focus();
+                            }
+                        }
+                    });
+                    
+                    input.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') {
+                            checkAnswer();
+                        } else if (e.key === 'Backspace' && !this.value) {
+                            // Move focus to previous input if current is empty
+                            const inputs = document.querySelectorAll('.letter-input');
+                            const currentIndex = Array.from(inputs).indexOf(this);
+                            if (currentIndex > 0) {
+                                inputs[currentIndex - 1].focus();
+                            }
+                        }
+                    });
+                    
+                    letterBox.appendChild(input);
+                } else {
+                    // Show the letter
+                    letterBox.textContent = letter;
+                }
+                
+                wordContainer.appendChild(letterBox);
+            }
+            
+            // Enable check button
+            checkBtn.disabled = false;
+            checkBtn.style.opacity = '1';
+            checkBtn.style.cursor = 'pointer';
+        }
+
+        // Check the player's answer
+        function checkAnswer() {
+            const inputs = document.querySelectorAll('.letter-input');
+            let allCorrect = true;
+            
+            inputs.forEach(input => {
+                const userLetter = input.value.toUpperCase();
+                const correctLetter = input.dataset.letter.toUpperCase();
+                
+                if (userLetter === correctLetter) {
+                    input.classList.add('correct-input');
+                    input.classList.remove('incorrect-input');
+                    input.disabled = true;
+                } else {
+                    input.classList.add('incorrect-input');
+                    input.classList.remove('correct-input');
+                    allCorrect = false;
+                }
+            });
+            
+            // Show feedback
+            if (allCorrect) {
+                feedbackElement.textContent = 'Correct!';
+                feedbackElement.classList.add('show', 'correct');
+                feedbackElement.classList.remove('incorrect');
+                
+                // Update score if first time completing this word
+                if (!wordCompleted[currentWordIndex]) {
+                    score++;
+                    updateScore();
+                    wordCompleted[currentWordIndex] = true;
+                    
+                    // Create celebration animation
+                    celebrateSuccess();
+                }
+                
+                // Auto-flip to example after 1.5 seconds
+                setTimeout(() => {
+                    cardInner.classList.add('flipped');
+                }, 1500);
+                
+            } else {
+                feedbackElement.textContent = 'Try again!';
+                feedbackElement.classList.add('show', 'incorrect');
+                feedbackElement.classList.remove('correct');
+                
+                // Clear incorrect inputs after 1 second
+                setTimeout(() => {
+                    inputs.forEach(input => {
+                        if (input.classList.contains('incorrect-input')) {
+                            input.value = '';
+                            input.classList.remove('incorrect-input');
+                        }
+                    });
+                    
+                    // Focus on first incorrect input
+                    const firstIncorrect = document.querySelector('.letter-input:not(.correct-input)');
+                    if (firstIncorrect) {
+                        firstIncorrect.focus();
+                    }
+                }, 1000);
+            }
+        }
+
+        // Create celebration animation
+        function celebrateSuccess() {
+            celebrationElement.innerHTML = '';
+            celebrationElement.classList.add('show');
+            
+            // Create random stars
+            for (let i = 0; i < 20; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                
+                // Random position, size and delay
+                const size = Math.random() * 20 + 10;
+                const left = Math.random() * 100;
+                const delay = Math.random() * 0.5;
+                
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.left = `${left}%`;
+                star.style.animationDelay = `${delay}s`;
+                
+                celebrationElement.appendChild(star);
+            }
+            
+            // Hide celebration after 2 seconds
+            setTimeout(() => {
+                celebrationElement.classList.remove('show');
+            }, 2000);
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const progressPercentage = ((currentWordIndex + 1) / totalWords) * 100;
+            progressBar.style.width = `${progressPercentage}%`;
+            progressText.textContent = `${currentWordIndex + 1}/${totalWords}`;
+        }
+
+        // Update score display
+        function updateScore() {
+            scoreElement.textContent = score;
+        }
+
+        // Event listeners
+        checkBtn.addEventListener('click', checkAnswer);
+        
+        flipBtn.addEventListener('click', () => {
+            cardInner.classList.add('flipped');
+            
+            // Focus on first input when card is flipped
+            setTimeout(() => {
+                const firstInput = document.querySelector('.letter-input');
+                if (firstInput) {
+                    firstInput.focus();
+                }
+            }, 600);
+        });
+        
+        backBtn.addEventListener('click', () => {
+            cardInner.classList.remove('flipped');
+        });
+        
+        prevBtn.addEventListener('click', () => {
+            if (currentWordIndex > 0) {
+                currentWordIndex--;
+                // Reset completed status to force new random blanks
+                if (wordCompleted[currentWordIndex] === false) {
+                    displayWord(currentWordIndex);
+                    updateProgress();
+                } else {
+                    // If word was completed before, show it
+                    displayWord(currentWordIndex);
+                    updateProgress();
+                }
+            }
+        });
+        
+        nextBtn.addEventListener('click', () => {
+            if (currentWordIndex < totalWords - 1) {
+                currentWordIndex++;
+                // Reset completed status to force new random blanks
+                if (wordCompleted[currentWordIndex] === false) {
+                    displayWord(currentWordIndex);
+                    updateProgress();
+                } else {
+                    // If word was completed before, show it
+                    displayWord(currentWordIndex);
+                    updateProgress();
+                }
+            }
+        });
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' && !cardInner.classList.contains('flipped')) {
+                if (currentWordIndex > 0) {
+                    currentWordIndex--;
+                    displayWord(currentWordIndex);
+                    updateProgress();
+                }
+            } else if (e.key === 'ArrowRight' && !cardInner.classList.contains('flipped')) {
+                if (currentWordIndex < totalWords - 1) {
+                    currentWordIndex++;
+                    displayWord(currentWordIndex);
+                    updateProgress();
+                }
+            }
+        });
+        
+        // Initialize the game
+        init();
+    </script>
+</body>
+</html>
